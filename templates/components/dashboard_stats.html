@@ -1,0 +1,65 @@
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Card 1: Total Assets -->
+    <div class="glass rounded-xl p-6 relative overflow-hidden bg-gradient-to-br from-blue-900/50 to-blue-950/20 border-l-4 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)] transition-transform hover:-translate-y-1">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-sm font-medium text-slate-400 mb-1">总资产数量</p>
+                <h3 class="text-3xl font-bold text-white">{{ stats.total_devices }}</h3>
+            </div>
+            <div class="p-3 bg-blue-500/20 rounded-lg">
+                <i data-lucide="server" class="w-6 h-6 text-blue-400"></i>
+            </div>
+        </div>
+        <!-- Decorative subtle glow -->
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl"></div>
+    </div>
+
+    <!-- Card 2: Online Devices -->
+    <div class="glass rounded-xl p-6 relative overflow-hidden bg-gradient-to-br from-emerald-900/50 to-emerald-950/20 border-l-4 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)] transition-transform hover:-translate-y-1">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-sm font-medium text-slate-400 mb-1">在线设备</p>
+                <h3 class="text-3xl font-bold text-white">{{ stats.online_devices }}</h3>
+            </div>
+            <div class="p-3 bg-emerald-500/20 rounded-lg">
+                <i data-lucide="check-circle" class="w-6 h-6 text-emerald-400"></i>
+            </div>
+        </div>
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl"></div>
+    </div>
+
+    <!-- Card 3: Alerts -->
+    <div class="glass rounded-xl p-6 relative overflow-hidden bg-gradient-to-br from-rose-900/50 to-rose-950/20 border-l-4 border-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.15)] transition-transform hover:-translate-y-1 group">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-sm font-medium text-slate-400 mb-1">异常告警</p>
+                <h3 class="text-3xl font-bold text-white group-hover:text-rose-400 transition-colors">{{ stats.alerts }}</h3>
+            </div>
+            <div class="p-3 bg-rose-500/20 rounded-lg">
+                <i data-lucide="alert-triangle" class="w-6 h-6 text-rose-400"></i>
+            </div>
+        </div>
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-rose-500/20 rounded-full blur-2xl"></div>
+    </div>
+
+    <!-- Card 4: Avg CPU -->
+    <div class="glass rounded-xl p-6 relative overflow-hidden bg-gradient-to-br from-amber-900/50 to-amber-950/20 border-l-4 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)] transition-transform hover:-translate-y-1">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-sm font-medium text-slate-400 mb-1">平均 CPU</p>
+                <h3 class="text-3xl font-bold text-white">{{ stats.avg_cpu }}%</h3>
+            </div>
+            <div class="p-3 bg-amber-500/20 rounded-lg">
+                <i data-lucide="cpu" class="w-6 h-6 text-amber-400"></i>
+            </div>
+        </div>
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-amber-500/20 rounded-full blur-2xl"></div>
+    </div>
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>

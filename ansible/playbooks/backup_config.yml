@@ -1,0 +1,13 @@
+---
+- name: "Anyops Lite: Basic Network Backup"
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Simulate taking a backup (or real command if properly configured)
+      debug:
+        msg: "Taking backup for {{ inventory_hostname }}..."
+    
+    # In production, replace with community.network.cli_command etc.
+    - name: "Execute backup"
+      command: "echo 'Simulated Backup Content' > /tmp/{{ inventory_hostname }}_backup.cfg"
+      changed_when: true

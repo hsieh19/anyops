@@ -1,0 +1,157 @@
+<script>
+    document.getElementById('page-title').innerText = '设备控制面 - {{ device.device_code }}';
+</script>
+
+<!-- Navigation Header -->
+<div class="mb-6 flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+        <button class="flex items-center text-slate-400 hover:text-white transition-colors group"
+                hx-get="/views/overview" hx-target="#main-content">
+            <i data-lucide="arrow-left" class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform"></i>
+            返回列表
+        </button>
+        <span class="text-slate-600">|</span>
+        <div class="flex items-center space-x-2">
+            {% if device.status_online == '在线' %}
+            <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+            <span class="font-medium text-emerald-400">设备在线</span>
+            {% else %}
+            <span class="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span>
+            <span class="font-medium text-rose-400">离线或脱网</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="flex items-center space-x-3">
+        <button class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-700 flex items-center">
+            <i data-lucide="terminal" class="w-4 h-4 mr-2"></i>
+            Web SSH
+        </button>
+        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-blue-500/20 flex items-center"
+                hx-post="/api/devices/{{ device.id }}/backup" hx-indicator="#global-loader">
+            <i data-lucide="download-cloud" class="w-4 h-4 mr-2"></i>
+            立即拉取配置
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    
+    <!-- Info Panel -->
+    <div class="glass p-6 rounded-2xl border border-slate-700 flex flex-col justify-between">
+        <div>
+            <div class="flex items-start justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white mb-1">{{ device.device_code }}</h2>
+                    <p class="text-slate-400 text-sm">{{ device.model }}</p>
+                </div>
+                <div class="p-3 bg-slate-800 rounded-xl">
+                    <i data-lucide="server" class="w-8 h-8 text-blue-400"></i>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                    <span class="text-slate-500 text-sm">管理 IP</span>
+                    <span class="font-mono text-slate-200">{{ device.ip }}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                    <span class="text-slate-500 text-sm">子网掩码</span>
+                    <span class="font-mono text-slate-200">{{ device.subnet_mask or '未配置' }}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                    <span class="text-slate-500 text-sm">默认网关</span>
+                    <span class="font-mono text-slate-200">{{ device.gateway or '未配置' }}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                    <span class="text-slate-500 text-sm">系统分组</span>
+                    <span class="text-slate-300 bg-slate-800 px-2 py-0.5 rounded text-xs">{{ device.system_group }}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                    <span class="text-slate-500 text-sm">关联凭据</span>
+                    <span class="text-blue-400 text-sm font-medium">{{ device.credential_name or '未关联' }}</span>
+                </div>
+                <div class="flex justify-between items-center h-full">
+                    <span class="text-slate-500 text-sm">物理位置</span>
+                    <span class="text-slate-200 text-sm">{{ device.location }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Metrics Panel -->
+    <div class="lg:col-span-2 glass p-6 rounded-2xl border border-slate-700 relative overflow-hidden">
+        <h3 class="text-lg font-medium text-white flex items-center mb-6">
+            <i data-lucide="activity" class="w-5 h-5 mr-3 text-emerald-400"></i>
+            实时硬件遥测 (Mocked)
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- CPU Dial -->
+            <div class="flex flex-col items-center justify-center p-4 bg-slate-800/30 rounded-xl border border-slate-800">
+                <div class="relative w-32 h-32 flex items-center justify-center mb-3">
+                    <svg class="w-full h-full transform -rotate-90">
+                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" class="text-slate-700"></circle>
+                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="351.8" stroke-dashoffset="{{ 351.8 - (351.8 * item.cpu / 100) }}" class="{{ 'text-rose-500' if item.cpu > 80 else 'text-blue-500' }} transition-all duration-1000"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-3xl font-bold text-white">{{ item.cpu }}<span class="text-base text-slate-400">%</span></span>
+                    </div>
+                </div>
+                <span class="text-sm font-medium text-slate-400">CPU 负载</span>
+            </div>
+
+            <!-- Memory Dial -->
+            <div class="flex flex-col items-center justify-center p-4 bg-slate-800/30 rounded-xl border border-slate-800">
+                <div class="relative w-32 h-32 flex items-center justify-center mb-3">
+                    <svg class="w-full h-full transform -rotate-90">
+                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" class="text-slate-700"></circle>
+                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="351.8" stroke-dashoffset="{{ 351.8 - (351.8 * item.mem_util / 100) }}" class="{{ 'text-rose-500' if item.mem_util > 80 else 'text-emerald-500' }} transition-all duration-1000"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-3xl font-bold text-white">{{ item.mem_util }}<span class="text-base text-slate-400">%</span></span>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="block text-sm font-medium text-slate-400 mb-0.5">内存使用率</span>
+                    <span class="text-xs text-slate-500">总量: {{ item.mem_total }} GB</span>
+                </div>
+            </div>
+
+            <!-- Disk Dial -->
+            <div class="flex flex-col items-center justify-center p-4 bg-slate-800/30 rounded-xl border border-slate-800">
+                <div class="relative w-32 h-32 flex items-center justify-center mb-3">
+                    <svg class="w-full h-full transform -rotate-90">
+                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" class="text-slate-700"></circle>
+                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="351.8" stroke-dashoffset="{{ 351.8 - (351.8 * item.disk_util / 100) }}" class="{{ 'text-rose-500' if item.disk_util > 80 else 'text-amber-500' }} transition-all duration-1000"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-3xl font-bold text-white">{{ item.disk_util }}<span class="text-base text-slate-400">%</span></span>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <span class="block text-sm font-medium text-slate-400 mb-0.5">存储使用率</span>
+                    <span class="text-xs text-slate-500">总量: {{ item.disk_total }} GB</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Logs / Config Snippets Panel -->
+<div class="glass p-6 rounded-2xl border border-slate-700">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-medium text-white flex items-center">
+            <i data-lucide="file-text" class="w-5 h-5 mr-3 text-indigo-400"></i>
+            最近抓取配置日志
+        </h3>
+    </div>
+    <div class="bg-[#0d1117] rounded-xl p-4 font-mono text-sm text-green-400 whitespace-pre overflow-x-auto border border-slate-800">
+> ansible-runner trigger successful...
+> collecting facts from {{ device.ip }}...
+> facts collected perfectly.
+! No recent configuration drifts detected.
+    </div>
+</div>

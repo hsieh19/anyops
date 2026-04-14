@@ -1,0 +1,83 @@
+<div id="device-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div class="glass w-full max-w-md rounded-xl border border-slate-700 shadow-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+            <h3 class="text-lg font-medium text-white">{% if device %}编辑设备{% else %}添加新设备{% endif %}</h3>
+            <button onclick="document.getElementById('device-modal').remove()" class="text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <form hx-post="{% if device %}/api/devices/{{ device.id }}{% else %}/api/devices{% endif %}" 
+              hx-target="#main-content" 
+              hx-on::after-request="document.getElementById('device-modal').remove()"
+              class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">系统分组 <span class="text-rose-500">*</span></label>
+                    <input type="text" name="system_group" required placeholder="如: 核心网络组" value="{{ device.system_group if device else '' }}"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">设备编号 <span class="text-rose-500">*</span></label>
+                    <input type="text" name="device_code" required placeholder="如: Core-SW-04" value="{{ device.device_code if device else '' }}"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">IP 地址 <span class="text-rose-500">*</span></label>
+                <input type="text" name="ip" required placeholder="如: 192.168.1.1" value="{{ device.ip if device else '' }}"
+                       class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 mb-3">
+                
+                <div class="flex space-x-3">
+                    <div class="flex-1">
+                        <label class="block text-xs font-medium text-slate-400 mb-1">子网掩码</label>
+                        <input type="text" name="subnet_mask" placeholder="如: 255.255.255.0" value="{{ device.subnet_mask if device else '' }}"
+                               class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs font-medium text-slate-400 mb-1">网关 (选填)</label>
+                        <input type="text" name="gateway" placeholder="如: 192.168.1.254" value="{{ device.gateway if device else '' }}"
+                               class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-blue-500/5 p-4 rounded-lg border border-blue-500/20">
+                <label class="block text-sm font-medium text-blue-400 mb-1 flex items-center">
+                    <i data-lucide="key" class="w-4 h-4 mr-2"></i> SSH/Web 登录凭据
+                </label>
+                <select name="credential_id" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                    <option value="">-- 请选择关联凭据 --</option>
+                    {% for cred in credentials %}
+                    <option value="{{ cred.id }}" {% if device and device.credential_id == cred.id %}selected{% endif %}>
+                        {{ cred.name }} ({{ cred.username }})
+                    </option>
+                    {% endfor %}
+                </select>
+                <p class="mt-2 text-[10px] text-slate-500 italic">关联后可在详情页使用 Web SSH 一键快捷登录</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">设备型号</label>
+                    <input type="text" name="model" placeholder="如: Cisco C9300" value="{{ device.model if device else '' }}"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">物理位置</label>
+                    <input type="text" name="location" placeholder="机房名称" value="{{ device.location if device else '' }}"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+
+            <div class="pt-4 flex justify-end space-x-3">
+                <button type="button" onclick="document.getElementById('device-modal').remove()" class="px-4 py-2 text-slate-400 hover:bg-slate-800 rounded-lg text-sm">取消</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-500/20">
+                    {% if device %}保存修改{% else %}确认添加{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

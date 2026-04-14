@@ -1,0 +1,17 @@
+---
+- name: Collect Device Facts
+  hosts: all
+  gather_facts: no
+  connection: network_cli
+  
+  tasks:
+    - name: Get basic system information
+      ansible.netcommon.net_get:
+        # This is a generic way to get device info, 
+        # but usually we use specific fact modules.
+        # For now, let's assume we use ansible_facts
+      register: result
+
+    - name: Display facts
+      debug:
+        var: ansible_facts

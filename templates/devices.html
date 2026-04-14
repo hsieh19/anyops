@@ -1,0 +1,136 @@
+<script>
+    // Update the page title
+    document.getElementById('page-title').innerText = '设备管理 (Asset DB)';
+</script>
+
+<div class="glass rounded-xl border border-slate-700 overflow-hidden shadow-lg">
+    <!-- Toolbar -->
+    <div class="px-6 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/30">
+        <div class="flex items-center space-x-4">
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500"></i>
+                <input type="text" name="q" placeholder="搜索 IP 或名称..." 
+                       value="{{ q or '' }}"
+                       autofocus
+                       onfocus="var val=this.value; this.value=''; this.value=val;"
+                       hx-get="/views/devices"
+                       hx-trigger="keyup changed delay:500ms, search"
+                       hx-target="#main-content"
+                       class="pl-10 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-64 transition-all">
+            </div>
+        </div>
+        <button hx-get="/views/devices/new" 
+                hx-target="#modal-container"
+                class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center shadow-lg shadow-blue-500/20">
+            <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+            添加设备
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-400">
+            <thead class="text-xs text-slate-400 uppercase bg-slate-800/80 border-b border-slate-700">
+                <tr>
+                    <th scope="col" class="px-6 py-4 font-medium">系统分组</th>
+                    <th scope="col" class="px-6 py-4 font-medium">设备编号</th>
+                    <th scope="col" class="px-6 py-4 font-medium">IP 地址</th>
+                    <th scope="col" class="px-6 py-4 font-medium">设备型号</th>
+                    <th scope="col" class="px-6 py-4 font-medium">关联凭据</th>
+                    <th scope="col" class="px-6 py-4 font-medium">物理位置</th>
+                    <th scope="col" class="px-6 py-4 font-medium">在线状态</th>
+                    <th scope="col" class="px-6 py-4 font-medium">健康状态</th>
+                    <th scope="col" class="px-6 py-4 text-right font-medium">操作</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/80">
+                
+                {% for device in devices %}
+                <!-- Dynamic Row -->
+                <tr class="border-b border-slate-800/50 hover:bg-slate-800/50 transition-colors group">
+                    <td class="px-6 py-4 text-slate-300">{{ device.system_group }}</td>
+                    <td class="px-6 py-4 font-medium text-slate-200">{{ device.device_code }}</td>
+                    <td class="px-6 py-4 font-mono text-slate-200">
+                        <div class="relative group cursor-help w-max"
+                             title="{% if device.subnet_mask %}子网掩码: {{ device.subnet_mask }}{% endif %}{% if device.gateway %}&#10;默认网关: {{ device.gateway }}{% endif %}">
+                            <span class="border-b border-dashed border-slate-600">{{ device.ip }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-slate-300">{{ device.model }}</td>
+                    <td class="px-6 py-4">
+                        {% if device.credential_name %}
+                        <span class="text-xs bg-slate-800 text-blue-400 px-2 py-1 rounded border border-blue-500/20">
+                            {{ device.credential_name }}
+                        </span>
+                        {% else %}
+                        <span class="text-xs text-slate-600 italic">未关联</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-slate-300">{{ device.location }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            {% if device.status_online == '在线' %}
+                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2 shadow-[0_0_5px_rgba(16,185,129,0.8)]"></div>
+                            {% else %}
+                            <div class="w-2.5 h-2.5 rounded-full bg-rose-500 mr-2 shadow-[0_0_5px_rgba(244,63,94,0.8)] animate-pulse"></div>
+                            {% endif %}
+                            {{ device.status_online }}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            {% if device.status_health == 'Healthy' %}
+                            <span class="text-emerald-400">✅ 正常</span>
+                            {% else %}
+                            <span class="text-amber-500 animate-pulse">⚠️ 告警</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end space-x-2">
+                            <span id="action-status-{{ device.id }}" class="mr-1"></span>
+                            
+                            <!-- Edit Button -->
+                            <button class="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700/50 rounded transition-colors"
+                                    title="编辑设备"
+                                    hx-get="/views/devices/{{ device.id }}/edit"
+                                    hx-target="#modal-container">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </button>
+                            
+                            <!-- Delete Button -->
+                            <button class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-700/50 rounded transition-colors"
+                                    title="删除设备"
+                                    hx-delete="/api/devices/{{ device.id }}"
+                                    hx-target="#main-content"
+                                    hx-confirm="警告：您确定要删除设备 {{ device.device_code }} 吗？">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+
+                            <!-- Backup Button -->
+                            <button class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-xs font-medium transition-colors ml-2"
+                                    hx-post="/api/devices/{{ device.id }}/backup"
+                                    hx-target="#action-status-{{ device.id }}"
+                                    hx-swap="innerHTML"
+                                    hx-indicator="#global-loader">
+                                一键备份
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="px-6 py-4 border-t border-slate-700 flex items-center justify-between bg-slate-800/30">
+        <span class="text-sm text-slate-500">显示 {{ devices|length }} 条记录</span>
+
+        <div class="flex space-x-1">
+            <button class="px-3 py-1 border border-slate-700 rounded text-slate-400 hover:bg-slate-700 disabled:opacity-50" disabled>上一页</button>
+            <button class="px-3 py-1 border border-slate-700 rounded text-slate-400 hover:bg-slate-700 disabled:opacity-50" disabled>下一页</button>
+        </div>
+    </div>
+</div>

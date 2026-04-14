@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  anyops-lite:
+    # 替换成您的 GitHub 用户名（小写）
+    image: ghcr.io/${GITHUB_USER_LOWER}/anyops:latest
+    container_name: anyops_lite
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./anyops_data:/app/data
+      - ./ansible_config:/app/ansible
+    environment:
+      - ANSIBLE_HOST_KEY_CHECKING=False
+      - TZ=Asia/Shanghai
+    # 这里的网络模式如果需要扫描局域网，可以考虑使用 host 模式
+    # network_mode: host
