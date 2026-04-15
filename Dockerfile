@@ -26,7 +26,7 @@ RUN ansible-galaxy collection install ansible.netcommon --force --pre
 RUN ansible-galaxy collection install community.network --force --pre
 RUN ansible-galaxy collection install cisco.ios --force --pre
 RUN ansible-galaxy collection install h3c_open.comware --force --pre
-RUN ansible-galaxy collection install ruijie.networks --force --pre
+RUN ansible-galaxy collection install ruijie.networks --force --pre || echo "ruijie.networks collection not available, skipping"
 RUN rm -rf /root/.ansible/galaxy/cache
 
 # Stage 2: Final stage (Runtime)
