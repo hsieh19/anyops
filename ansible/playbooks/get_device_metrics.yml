@@ -26,7 +26,7 @@
     # --- H3C (华三) ---
     - name: Get H3C Metrics
       when: vendor == 'H3C'
-      h3c.comware.comware_command:
+      h3c_open.comware.comware_command:
         commands:
           - display cpu
           - display memory

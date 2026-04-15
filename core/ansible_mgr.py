@@ -27,7 +27,7 @@ async def collect_device_metrics_real(device_id: int):
     os_map = {
         "Huawei": "community.network.ce",
         "Cisco": "cisco.ios.ios",
-        "H3C": "h3c.comware.comware",
+        "H3C": "h3c_open.comware.comware",
         "Ruijie": "ruijie.networks.ruijie"
     }
     
