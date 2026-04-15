@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
 
+# Ensure ansible-galaxy is in PATH for the builder stage
+ENV PATH="/root/.local/bin:${PATH}"
+
 # Install necessary Ansible collections for Huawei, Cisco, H3C, Ruijie
 RUN ansible-galaxy collection install \
     ansible.netcommon \
@@ -26,8 +29,8 @@ RUN ansible-galaxy collection install \
 # Stage 2: Final stage (Runtime)
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
@@ -43,7 +46,7 @@ COPY --from=builder /root/.local /root/.local
 COPY --from=builder /root/.ansible /root/.ansible
 
 # Ensure paths are correct
-ENV PATH=/root/.local/bin:$PATH
+ENV PATH="/root/.local/bin:${PATH}"
 
 COPY . .
 
