@@ -22,11 +22,11 @@ ENV PATH="/root/.local/bin:${PATH}"
 
 # Install necessary Ansible collections for Huawei, Cisco, H3C, Ruijie
 # Using individual commands to identify which one fails if it happens again
-RUN ansible-galaxy collection install ansible.netcommon --force
-RUN ansible-galaxy collection install community.network --force
-RUN ansible-galaxy collection install cisco.ios --force
-RUN ansible-galaxy collection install h3c.comware --force
-RUN ansible-galaxy collection install ruijie.networks --force
+RUN ansible-galaxy collection install ansible.netcommon --force --pre
+RUN ansible-galaxy collection install community.network --force --pre
+RUN ansible-galaxy collection install cisco.ios --force --pre
+RUN ansible-galaxy collection install h3c.comware --force --pre
+RUN ansible-galaxy collection install ruijie.networks --force --pre
 RUN rm -rf /root/.ansible/galaxy/cache
 
 # Stage 2: Final stage (Runtime)
