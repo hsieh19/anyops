@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     libffi-dev \
     libssl-dev \
+    git \
+    tar \
+    gzip \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -18,13 +21,13 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 ENV PATH="/root/.local/bin:${PATH}"
 
 # Install necessary Ansible collections for Huawei, Cisco, H3C, Ruijie
-RUN ansible-galaxy collection install \
-    ansible.netcommon \
-    community.network \
-    cisco.ios \
-    h3c.comware \
-    ruijie.networks \
-    && rm -rf /root/.ansible/galaxy/cache
+# Using individual commands to identify which one fails if it happens again
+RUN ansible-galaxy collection install ansible.netcommon --force
+RUN ansible-galaxy collection install community.network --force
+RUN ansible-galaxy collection install cisco.ios --force
+RUN ansible-galaxy collection install h3c.comware --force
+RUN ansible-galaxy collection install ruijie.networks --force
+RUN rm -rf /root/.ansible/galaxy/cache
 
 # Stage 2: Final stage (Runtime)
 FROM python:3.11-slim
