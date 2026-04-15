@@ -1,0 +1,42 @@
+---
+- name: Real-time Metrics Collection
+  hosts: all
+  gather_facts: no
+  connection: network_cli
+
+  tasks:
+    # --- 华为 (Huawei) ---
+    - name: Get Huawei Metrics
+      when: vendor == 'Huawei'
+      community.network.ce_command:
+        commands:
+          - display cpu-usage
+          - display memory-usage
+      register: huawei_out
+
+    # --- 思科 (Cisco) ---
+    - name: Get Cisco Metrics
+      when: vendor == 'Cisco'
+      cisco.ios.ios_command:
+        commands:
+          - show processes cpu | include one minute
+          - show memory statistics
+      register: cisco_out
+
+    # --- H3C (华三) ---
+    - name: Get H3C Metrics
+      when: vendor == 'H3C'
+      h3c.comware.comware_command:
+        commands:
+          - display cpu
+          - display memory
+      register: h3c_out
+
+    # --- 锐捷 (Ruijie) ---
+    - name: Get Ruijie Metrics
+      when: vendor == 'Ruijie'
+      ruijie.networks.ruijie_command:
+        commands:
+          - show cpu
+          - show memory
+      register: ruijie_out

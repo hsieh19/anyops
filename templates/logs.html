@@ -1,0 +1,66 @@
+<script>
+    document.getElementById('page-title').innerText = '系统与设备日志中心';
+</script>
+
+<div class="glass rounded-xl border border-slate-700 overflow-hidden shadow-2xl flex flex-col h-full min-h-[600px]">
+    <!-- Logs Header / Filter -->
+    <div class="px-6 py-4 border-b border-slate-700 flex flex-wrap justify-between items-center bg-slate-800/60 gap-4">
+        <form hx-get="/api/logs/table" 
+              hx-target="#logs-table-body" 
+              hx-trigger="change, keyup delay:500ms from:input[name='q']"
+              class="flex items-center space-x-4 flex-1">
+            
+            <div class="relative flex-1 max-w-sm">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+                <input type="text" name="q" placeholder="过滤消息内容, IP 或模块..." 
+                       value="{{ q or '' }}"
+                       class="w-full bg-slate-900 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-all">
+            </div>
+
+            <select name="level" class="bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-sm text-slate-300 focus:outline-none">
+                <option value="">全部级别</option>
+                <option value="2" {% if level == 2 %}selected{% endif %}>中危及以上 (<= Level 2)</option>
+                <option value="4" {% if level == 4 %}selected{% endif %}>警告及以上 (<= Level 4)</option>
+            </select>
+        </form>
+
+        <div class="flex items-center space-x-2">
+            <button class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-lg transition-colors border border-slate-700"
+                    hx-get="/api/logs/table" 
+                    hx-target="#logs-table-body"
+                    title="刷新列表">
+                <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+            </button>
+            <div id="logs-loading" class="htmx-indicator">
+                <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-blue-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs Content -->
+    <div class="flex-1 overflow-auto bg-slate-950/40">
+        <table class="w-full text-left text-sm table-fixed border-collapse">
+            <thead class="sticky top-0 bg-slate-900 z-10 border-b border-slate-700 shadow-sm text-xs font-semibold text-slate-500 uppercase">
+                <tr>
+                    <th class="px-6 py-3 w-44">时间戳</th>
+                    <th class="px-6 py-3 w-40">设备来源</th>
+                    <th class="px-6 py-3 w-24 text-center">级别</th>
+                    <th class="px-6 py-3 w-32">模块</th>
+                    <th class="px-6 py-3">日志消息内容</th>
+                </tr>
+            </thead>
+            <tbody id="logs-table-body" class="divide-y divide-slate-800/40">
+                {% include 'components/log_table_body.html' %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Live Auto-refresh Indicator -->
+    <div class="px-6 py-2 border-t border-slate-700 bg-slate-900/40 flex justify-between items-center">
+        <div class="flex items-center">
+            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-2"></div>
+            <span class="text-[10px] text-slate-500 italic">实时采集服务已就绪 (UDP 514)</span>
+        </div>
+        <span class="text-[10px] text-slate-600">显示最近 50 条记录</span>
+    </div>
+</div>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Web SSH - {{ device_code }}</title>
+    <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css" />
+    <script src="https://unpkg.com/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://unpkg.com/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #020617; }
+        #terminal-container { height: calc(100vh - 40px); width: 100%; padding: 10px; box-sizing: border-box; }
+        .terminal { border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body class="overflow-hidden flex flex-col">
+    <!-- Header -->
+    <div class="h-10 px-4 flex items-center justify-between border-b border-white/5 bg-slate-900 text-slate-400 text-xs">
+        <div class="flex items-center">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+            <span class="font-mono text-white mr-2">{{ device_code }} ({{ ip }})</span>
+            <span id="status" class="opacity-60 italic">Connecting...</span>
+        </div>
+        <div>
+            <span class="opacity-40">Press Ctrl+C to disconnect...</span>
+        </div>
+    </div>
+
+    <!-- Terminal Container -->
+    <div id="terminal-container">
+        <div id="terminal" style="height: 100%; width:100%;"></div>
+    </div>
+
+    <script>
+        const term = new Terminal({
+            cursorBlink: true,
+            theme: {
+                background: '#020617',
+                foreground: '#cbd5e1',
+                cursor: '#3b82f6'
+            },
+            fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+            fontSize: 14
+        });
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+        term.open(document.getElementById('terminal'));
+        fitAddon.fit();
+
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const socket = new WebSocket(`${protocol}//${window.location.host}/ws/ssh/{{ device_id }}`);
+
+        // Handle terminal input
+        term.onData(data => {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(data);
+            }
+        });
+
+        // Handle socket output
+        socket.onmessage = event => {
+            term.write(event.data);
+            if (status.innerText === 'Connecting...') {
+                document.getElementById('status').innerText = 'Connected';
+                document.getElementById('status').classList.remove('opacity-60');
+                document.getElementById('status').classList.add('text-emerald-400');
+            }
+        };
+
+        socket.onclose = () => {
+            term.write('\r\n\x1b[31m[Disconnected from session]\x1b[m\r\n');
+            document.getElementById('status').innerText = 'Disconnected';
+            document.getElementById('status').classList.remove('text-emerald-400');
+            document.getElementById('status').classList.add('text-rose-500');
+        };
+
+        window.onresize = () => fitAddon.fit();
+    </script>
+</body>
+</html>

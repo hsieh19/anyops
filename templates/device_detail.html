@@ -23,17 +23,26 @@
     </div>
     
     <div class="flex items-center space-x-3">
-        <button class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-700 flex items-center">
+        <button class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-700 flex items-center"
+                onclick="window.open('/views/ssh/{{ device.id }}', '_blank', 'width=1000,height=600')">
             <i data-lucide="terminal" class="w-4 h-4 mr-2"></i>
             Web SSH
         </button>
-        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-blue-500/20 flex items-center"
+        <button id="sync-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-blue-500/20 flex items-center"
+                hx-post="/api/devices/{{ device.id }}/sync"
+                hx-target="#sync-status">
+            <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+            刷新指标
+        </button>
+        <button class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-emerald-500/20 flex items-center"
                 hx-post="/api/devices/{{ device.id }}/backup" hx-indicator="#global-loader">
             <i data-lucide="download-cloud" class="w-4 h-4 mr-2"></i>
             立即拉取配置
         </button>
     </div>
 </div>
+
+<div id="sync-status" class="mb-4"></div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
     
@@ -56,24 +65,16 @@
                     <span class="font-mono text-slate-200">{{ device.ip }}</span>
                 </div>
                 <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
-                    <span class="text-slate-500 text-sm">子网掩码</span>
-                    <span class="font-mono text-slate-200">{{ device.subnet_mask or '未配置' }}</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
-                    <span class="text-slate-500 text-sm">默认网关</span>
-                    <span class="font-mono text-slate-200">{{ device.gateway or '未配置' }}</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
-                    <span class="text-slate-500 text-sm">系统分组</span>
-                    <span class="text-slate-300 bg-slate-800 px-2 py-0.5 rounded text-xs">{{ device.system_group }}</span>
-                </div>
-                <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
                     <span class="text-slate-500 text-sm">关联凭据</span>
                     <span class="text-blue-400 text-sm font-medium">{{ device.credential_name or '未关联' }}</span>
                 </div>
-                <div class="flex justify-between items-center h-full">
+                <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
                     <span class="text-slate-500 text-sm">物理位置</span>
                     <span class="text-slate-200 text-sm">{{ device.location }}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-800/50 pb-2">
+                    <span class="text-slate-500 text-sm">最后同步时间</span>
+                    <span class="text-slate-400 text-xs">{{ device.last_sync_time or '从未同步' }}</span>
                 </div>
             </div>
         </div>
@@ -83,7 +84,7 @@
     <div class="lg:col-span-2 glass p-6 rounded-2xl border border-slate-700 relative overflow-hidden">
         <h3 class="text-lg font-medium text-white flex items-center mb-6">
             <i data-lucide="activity" class="w-5 h-5 mr-3 text-emerald-400"></i>
-            实时硬件遥测 (Mocked)
+            硬件实时遥测数据
         </h3>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -93,10 +94,10 @@
                 <div class="relative w-32 h-32 flex items-center justify-center mb-3">
                     <svg class="w-full h-full transform -rotate-90">
                         <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" class="text-slate-700"></circle>
-                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="351.8" stroke-dashoffset="{{ 351.8 - (351.8 * item.cpu / 100) }}" class="{{ 'text-rose-500' if item.cpu > 80 else 'text-blue-500' }} transition-all duration-1000"></circle>
+                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="351.8" stroke-dashoffset="{{ 351.8 - (351.8 * device.last_cpu / 100) }}" class="{{ 'text-rose-500' if device.last_cpu > 80 else 'text-blue-500' }} transition-all duration-1000"></circle>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-3xl font-bold text-white">{{ item.cpu }}<span class="text-base text-slate-400">%</span></span>
+                        <span class="text-3xl font-bold text-white">{{ device.last_cpu }}<span class="text-base text-slate-400">%</span></span>
                     </div>
                 </div>
                 <span class="text-sm font-medium text-slate-400">CPU 负载</span>
@@ -107,15 +108,14 @@
                 <div class="relative w-32 h-32 flex items-center justify-center mb-3">
                     <svg class="w-full h-full transform -rotate-90">
                         <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" class="text-slate-700"></circle>
-                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="351.8" stroke-dashoffset="{{ 351.8 - (351.8 * item.mem_util / 100) }}" class="{{ 'text-rose-500' if item.mem_util > 80 else 'text-emerald-500' }} transition-all duration-1000"></circle>
+                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="351.8" stroke-dashoffset="{{ 351.8 - (351.8 * device.last_mem / 100) }}" class="{{ 'text-rose-500' if device.last_mem > 80 else 'text-emerald-500' }} transition-all duration-1000"></circle>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-3xl font-bold text-white">{{ item.mem_util }}<span class="text-base text-slate-400">%</span></span>
+                        <span class="text-3xl font-bold text-white">{{ device.last_mem }}<span class="text-base text-slate-400">%</span></span>
                     </div>
                 </div>
                 <div class="text-center">
                     <span class="block text-sm font-medium text-slate-400 mb-0.5">内存使用率</span>
-                    <span class="text-xs text-slate-500">总量: {{ item.mem_total }} GB</span>
                 </div>
             </div>
 
@@ -124,15 +124,14 @@
                 <div class="relative w-32 h-32 flex items-center justify-center mb-3">
                     <svg class="w-full h-full transform -rotate-90">
                         <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" class="text-slate-700"></circle>
-                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="351.8" stroke-dashoffset="{{ 351.8 - (351.8 * item.disk_util / 100) }}" class="{{ 'text-rose-500' if item.disk_util > 80 else 'text-amber-500' }} transition-all duration-1000"></circle>
+                        <circle cx="64" cy="64" r="56" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="351.8" stroke-dashoffset="{{ 351.8 - (351.8 * device.last_disk / 100) }}" class="{{ 'text-rose-500' if device.last_disk > 80 else 'text-amber-500' }} transition-all duration-1000"></circle>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-3xl font-bold text-white">{{ item.disk_util }}<span class="text-base text-slate-400">%</span></span>
+                        <span class="text-3xl font-bold text-white">{{ device.last_disk }}<span class="text-base text-slate-400">%</span></span>
                     </div>
                 </div>
                 <div class="text-center">
                     <span class="block text-sm font-medium text-slate-400 mb-0.5">存储使用率</span>
-                    <span class="text-xs text-slate-500">总量: {{ item.disk_total }} GB</span>
                 </div>
             </div>
 
@@ -145,13 +144,13 @@
     <div class="flex justify-between items-center mb-6">
         <h3 class="text-lg font-medium text-white flex items-center">
             <i data-lucide="file-text" class="w-5 h-5 mr-3 text-indigo-400"></i>
-            最近抓取配置日志
+            最近采集日志流
         </h3>
     </div>
-    <div class="bg-[#0d1117] rounded-xl p-4 font-mono text-sm text-green-400 whitespace-pre overflow-x-auto border border-slate-800">
-> ansible-runner trigger successful...
-> collecting facts from {{ device.ip }}...
-> facts collected perfectly.
-! No recent configuration drifts detected.
+    <div class="bg-[#0d1117] rounded-xl p-4 font-mono text-sm text-green-400 whitespace-pre overflow-x-auto border border-slate-800 min-h-[120px]">
+> 正在解析设备 {{ device.model or 'Generic' }} ({{ device.ip }}) ...
+> 驱动载入: ansible.netcommon.network_cli
+> 指标同步时间: {{ device.last_sync_time or '从未执行' }}
+> 状态反馈: {{ '成功' if device.last_cpu > 0 else '等待首次采集' }}
     </div>
 </div>

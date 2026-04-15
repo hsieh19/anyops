@@ -1,0 +1,15 @@
+<div class="flex flex-col items-center justify-center min-h-[400px] text-slate-400">
+    <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4 border border-slate-700">
+        <i data-lucide="construction" class="w-8 h-8 text-blue-400"></i>
+    </div>
+    <h2 class="text-xl font-bold text-white mb-2">{{ title }}</h2>
+    <p class="text-sm opacity-60">{{ msg }}</p>
+    <div class="mt-8 px-4 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md text-xs animate-pulse">
+        Feature under development...
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+    document.getElementById('page-title').innerText = '{{ title }}';
+</script>

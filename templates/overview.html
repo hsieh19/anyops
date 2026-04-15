@@ -2,6 +2,25 @@
     document.getElementById('page-title').innerText = '设备性能状态概览';
 </script>
 
+<style>
+    /* 解决 IDE 处理 Jinja2 属性时的校验报错 */
+    .bar-red { background-color: #f43f5e; box-shadow: 0 0 8px rgba(244,63,94,0.6); }
+    .bar-blue { background-color: #3b82f6; box-shadow: 0 0 8px rgba(59,130,246,0.5); }
+    .bar-emerald { background-color: #10b981; box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+    .bar-amber { background-color: #f59e0b; box-shadow: 0 0 8px rgba(245,158,11,0.5); }
+    
+    .progress-fill {
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 1000ms;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+    }
+</style>
+
 <div class="glass rounded-xl border border-slate-700 overflow-hidden shadow-xl">
     <div class="px-6 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/80">
         <div class="flex items-center space-x-4 w-96">
@@ -17,72 +36,84 @@
                        class="w-full bg-slate-900/50 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
             </div>
         </div>
-        <button class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center text-sm font-medium transition-colors shadow-lg shadow-blue-500/20">
+        <button class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center text-sm font-medium transition-colors shadow-lg shadow-blue-500/20"
+                hx-post="/api/devices/all/sync"
+                hx-swap="none">
             <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
-            同步巡检指标
+            同步全网巡检
         </button>
     </div>
 
     <div class="overflow-x-auto w-full">
         <table class="w-full text-left text-sm text-slate-400 table-fixed">
-            <thead class="text-xs text-slate-500 uppercase bg-slate-900/50 border-b border-slate-700">
+            <thead class="text-sm text-slate-300 uppercase bg-slate-900/50 border-b border-slate-700">
                 <tr>
-                    <th class="px-6 py-4 font-medium w-32">系统分组</th>
-                    <th class="px-6 py-4 font-medium w-40">设备编号</th>
-                    <th class="px-6 py-4 font-medium w-40">IP 地址</th>
-                    <th class="px-6 py-4 font-medium w-32 text-center">CPU 负载</th>
-                    <th class="px-6 py-4 font-medium w-28">系统内存</th>
-                    <th class="px-6 py-4 font-medium w-32 text-center">内存使用率</th>
-                    <th class="px-6 py-4 font-medium w-28">存储空间</th>
-                    <th class="px-6 py-4 font-medium w-32 text-center">存储使用率</th>
-                    <th class="px-6 py-4 font-medium text-right w-24">操作</th>
+                    <th class="px-6 py-4 font-bold w-32">系统分组</th>
+                    <th class="px-6 py-4 font-bold w-40">设备编号</th>
+                    <th class="px-6 py-4 font-bold w-40">IP 地址</th>
+                    <th class="px-6 py-4 font-bold w-32 text-center">CPU</th>
+                    <th class="px-6 py-4 font-bold w-32 text-center">内存</th>
+                    <th class="px-6 py-4 font-bold w-32 text-center">磁盘</th>
+                    <th class="px-6 py-4 font-bold w-34 text-center">最后采集时间</th>
+                    <th class="px-6 py-4 font-bold text-right w-24">操作</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/50">
-                
-                {% for item in items %}
+                {% for device in devices %}
                 <tr class="hover:bg-slate-800/40 transition-colors group">
-                    <td class="px-6 py-4 text-slate-400 truncate">{{ item.device.system_group }}</td>
-                    <td class="px-6 py-4 font-medium text-slate-200 truncate">{{ item.device.device_code }}</td>
-                    <td class="px-6 py-4 font-mono text-slate-300">{{ item.device.ip }}</td>
+                    <td class="px-6 py-4 text-slate-300 truncate text-sm">{{ device.system_group }}</td>
+                    <td class="px-6 py-4 font-bold text-slate-100 truncate text-sm">{{ device.device_code }}</td>
+                    <td class="px-6 py-4 font-mono text-slate-200 text-sm italic">{{ device.ip }}</td>
                     
+                    <!-- CPU -->
                     <td class="px-6 py-4 text-center">
                         <div class="flex flex-col items-center">
-                            <span class="text-[10px] font-mono mb-1 {{ 'text-rose-400' if item.cpu > 80 else 'text-slate-400' }}">{{ item.cpu }}%</span>
+                            <span class="text-sm font-bold mb-1 {{ 'text-rose-400' if device.last_cpu > 80 else 'text-white' }}">{{ device.last_cpu }}%</span>
                             <div class="w-full bg-slate-800 rounded-full h-1 relative overflow-hidden">
-                                <div class="absolute inset-y-0 left-0 {{ 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]' if item.cpu > 80 else 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' }} transition-all duration-1000" style="width: {{ item.cpu }}%"></div>
+                                <div class="progress-fill {{ 'bar-red' if device.last_cpu > 80 else 'bar-blue' }}" data-width="{{ device.last_cpu or 0 }}"></div>
                             </div>
                         </div>
                     </td>
                     
-                    <td class="px-6 py-4 text-slate-400">{{ item.mem_total }} GB</td>
-                    
+                    <!-- Memory -->
                     <td class="px-6 py-4 text-center">
                         <div class="flex flex-col items-center">
-                            <span class="text-[10px] font-mono mb-1 {{ 'text-rose-400' if item.mem_util > 80 else 'text-slate-400' }}">{{ item.mem_util }}%</span>
+                            <span class="text-sm font-bold mb-1 {{ 'text-rose-400' if device.last_mem > 80 else 'text-white' }}">{{ device.last_mem }}%</span>
                             <div class="w-full bg-slate-800 rounded-full h-1 relative overflow-hidden">
-                                <div class="absolute inset-y-0 left-0 {{ 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]' if item.mem_util > 80 else 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' }} transition-all duration-1000" style="width: {{ item.mem_util }}%"></div>
-                            </div>
-                        </div>
-                    </td>
-                    
-                    <td class="px-6 py-4 text-slate-400">{{ item.disk_total }} GB</td>
-                    
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex flex-col items-center">
-                            <span class="text-[10px] font-mono mb-1 {{ 'text-rose-400' if item.disk_util > 80 else 'text-slate-400' }}">{{ item.disk_util }}%</span>
-                            <div class="w-full bg-slate-800 rounded-full h-1 relative overflow-hidden">
-                                <div class="absolute inset-y-0 left-0 {{ 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]' if item.disk_util > 80 else 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' }} transition-all duration-1000" style="width: {{ item.disk_util }}%"></div>
+                                <div class="progress-fill {{ 'bar-red' if device.last_mem > 80 else 'bar-emerald' }}" data-width="{{ device.last_mem or 0 }}"></div>
                             </div>
                         </div>
                     </td>
 
+                    <!-- Disk -->
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex flex-col items-center">
+                            <span class="text-sm font-bold mb-1 {{ 'text-rose-400' if device.last_disk > 80 else 'text-white' }}">{{ device.last_disk }}%</span>
+                            <div class="w-full bg-slate-800 rounded-full h-1 relative overflow-hidden">
+                                <div class="progress-fill {{ 'bar-red' if device.last_disk > 80 else 'bar-amber' }}" data-width="{{ device.last_disk or 0 }}"></div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Last Sync -->
+                    <td class="px-6 py-4 text-center text-slate-100 text-sm font-bold">{{ device.last_sync_time or '从未同步' }}</td>
+
+                    <!-- Operations -->
                     <td class="px-6 py-4 text-right">
-                        <button class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded text-xs font-medium transition-colors border border-slate-700 hover:border-slate-500"
-                                hx-get="/views/devices/{{ item.device.id }}/detail" 
-                                hx-target="#main-content">
-                            查看
-                        </button>
+                        <div class="flex items-center justify-end space-x-2">
+                            <button class="p-1.5 bg-slate-800/80 hover:bg-blue-600/30 text-slate-400 hover:text-blue-400 rounded transition-all border border-slate-700"
+                                    title="立即同步"
+                                    hx-post="/api/devices/{{ device.id }}/sync"
+                                    hx-swap="none">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button class="p-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded transition-all border border-slate-700 hover:border-slate-500"
+                                    title="查看详情"
+                                    hx-get="/views/devices/{{ device.id }}/detail" 
+                                    hx-target="#main-content">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -92,6 +123,12 @@
     </div>
 
     <div class="px-6 py-4 border-t border-slate-700 flex items-center justify-between bg-slate-900/30">
-        <span class="text-xs text-slate-500">显示周期内共计 {{ items|length }} 个性能采样点</span>
+        <span class="text-xs text-slate-500">共计管理 {{ devices|length }} 台网络设备性能节点</span>
     </div>
 </div>
+
+<script>
+    document.querySelectorAll('.progress-fill[data-width]').forEach(function(el) {
+        el.style.width = el.dataset.width + '%';
+    });
+</script>

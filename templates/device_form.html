@@ -61,15 +61,26 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">设备型号</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">设备品牌 (Ansible 自动识别)</label>
+                    <select name="vendor" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                        <option value="Other" {% if device and device.vendor == 'Other' %}selected{% endif %}>Other (通用)</option>
+                        <option value="Huawei" {% if device and device.vendor == 'Huawei' %}selected{% endif %}>Huawei (华为)</option>
+                        <option value="Cisco" {% if device and device.vendor == 'Cisco' %}selected{% endif %}>Cisco (思科)</option>
+                        <option value="H3C" {% if device and device.vendor == 'H3C' %}selected{% endif %}>H3C (华三)</option>
+                        <option value="Ruijie" {% if device and device.vendor == 'Ruijie' %}selected{% endif %}>Ruijie (锐捷)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">具体型号</label>
                     <input type="text" name="model" placeholder="如: Cisco C9300" value="{{ device.model if device else '' }}"
                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">物理位置</label>
-                    <input type="text" name="location" placeholder="机房名称" value="{{ device.location if device else '' }}"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
-                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">物理位置</label>
+                <input type="text" name="location" placeholder="机房名称 / 机架位" value="{{ device.location if device else '' }}"
+                       class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
             </div>
 
             <div class="pt-4 flex justify-end space-x-3">
